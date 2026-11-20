@@ -1,0 +1,36 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "./src/index.ts",
+    "./src/dom/index.ts",
+    "./src/r3f/index.ts",
+    "./src/its-fine/index.ts"
+  ],
+  "out": "./dist-typedoc/docs",
+  "tsconfig": "./tsconfig.app.json",
+  "name": "react-stage",
+  "readme": "./README.md",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "categoryOrder": ["component", "hook", "*"],
+  "kindSortOrder": [
+    "Function",
+    "Variable",
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Enum",
+    "Reference"
+  ],
+  "navigation": {
+    "includeCategories": true
+  },
+  "titleLink": "/react-stage",
+  "navigationLinks": {
+    "GitHub": "https://github.com/astralarium/react-stage"
+  },
+  "plugin": ["typedoc-rhineai-theme"]
+}
