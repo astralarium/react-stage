@@ -13,8 +13,7 @@ export interface HostAdapter<Host> {
     hidden?: boolean;
   }>;
   /** Renders `children` into an item's content host; calls `onHost` with
-   *  the host once the renderer has built it, and null when the renderer
-   *  takes it out of the tree. */
+   *  it once built and null once removed. */
   Item: ComponentType<{
     onHost: (host: Host | null) => void;
     children?: ReactNode;
@@ -24,7 +23,6 @@ export interface HostAdapter<Host> {
   attach(host: Host, parent: Host, before: Host | null): void;
   /** Takes `host` out of its parent. */
   detach(host: Host): void;
-  /** Renderer contexts kept out of the bridge; the dev context check
-   *  skips them. */
+  /** Renderer contexts; the dev context check skips them. */
   unbridged?: readonly AnyContext[];
 }

@@ -7,13 +7,12 @@ interface R3fSlotProps {
   hidden?: boolean;
 }
 
-/** Stops scene-rooted raycasts at the backstage host: three ignores
- *  `visible`. r3f raycasts each handler-bearing object directly; offstage
- *  content opts out through `useOffstage`. */
+/** Stops scene raycasts at the backstage host; three's raycast ignores
+ *  `visible`. r3f events raycast objects directly, so offstage content
+ *  checks `useOffstage`. */
 const skipRaycast = () => false;
 
-/** A group slot host; hidden, the backstage host that neither renders nor
- *  raycasts. */
+/** A group slot host; `hidden` stops rendering and raycasts. */
 export function R3fSlot({ onHost, hidden }: R3fSlotProps) {
   return (
     <group
@@ -40,9 +39,7 @@ export function R3fItem({ onHost, children }: R3fItemProps) {
   useLayoutEffect(() => {
     latest.current = onHost;
   });
-  // Runs on mount and whenever the renderer re-attaches the host
-  // (reconstruction, unhide); the returned detach runs on unmount and
-  // hide.
+  // Runs on each (re)attach, unhide included; cleanup on unmount and hide.
   const attach: AttachFnType<Object3D> = (_parent, host) => {
     latest.current(host);
     return () => latest.current(null);

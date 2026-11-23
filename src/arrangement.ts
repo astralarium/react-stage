@@ -19,9 +19,8 @@ export interface Arrangement<Key, SlotId> {
   subscribe(
     fn: (batch: readonly ArrangementOp<Key, SlotId>[]) => void,
   ): () => void;
-  /** Current arrangement; undefined while ops await delivery. The stage
-   *  diffs it against its mirror after each batch in development
-   *  builds. */
+  /** Current arrangement; undefined while ops await delivery. Dev builds
+   *  check the stage's mirror against it. */
   snapshot?(): ArrangementSnapshot<Key, SlotId> | undefined;
 }
 
@@ -36,8 +35,7 @@ export interface ArrangementMove<Key, SlotId> {
 export interface ArrangementChange<Key, SlotId> {
   added: Key[];
   removed: Key[];
-  /** Keys in a new slot, or reordered among the keys that stayed in
-   *  theirs. */
+  /** Keys in a new slot, or reordered among keys that stayed. */
   moved: ArrangementMove<Key, SlotId>[];
   /** Slots whose order differs from before the batch. */
   slots: Set<SlotId>;
@@ -119,7 +117,7 @@ export class ArrangementMirror<Key, SlotId> {
   }
 
   /** Applies `batch` and reports its net change; an invalid op throws
-   *  and leaves the mirror as it was before the batch. */
+   *  and rolls the batch back. */
   applyBatch(
     batch: readonly ArrangementOp<Key, SlotId>[],
   ): ArrangementChange<Key, SlotId> {
@@ -148,7 +146,7 @@ export class ArrangementMirror<Key, SlotId> {
 
     const slotAtStart = (key: Key) =>
       startSlot.has(key) ? startSlot.get(key) : this.#slotOf.get(key);
-    // Keys in `slot` both before and after the batch, in either order.
+    // Keys in `slot` before and after the batch.
     const stayed = (keys: readonly Key[], slot: SlotId) =>
       keys.filter(
         (key) => slotAtStart(key) === slot && this.#slotOf.get(key) === slot,
@@ -293,11 +291,8 @@ function longestIncreasing(values: readonly number[]): Set<number> {
   return run;
 }
 
-/**
- * Applies ops turning `mirror` into `next` and returns them: removes,
- * then per slot an add or move for each key outside the longest run
- * already in order.
- */
+/** Applies and returns ops turning `mirror` into `next`; keys already in
+ *  order stay put. */
 export function reconcileArrangement<Key, SlotId>(
   mirror: ArrangementMirror<Key, SlotId>,
   next: ArrangementSnapshot<Key, SlotId>,
@@ -307,11 +302,9 @@ export function reconcileArrangement<Key, SlotId>(
   return reconcileSlots(mirror, full);
 }
 
-/**
- * Applies ops turning the slots `next` names into their orders and
- * returns them; other slots change only by losing keys `next` claims.
- * Keys leaving the named slots for none of them are removed.
- */
+/** {@link reconcileArrangement} over the slots `next` names. Other slots
+ *  only lose keys `next` claims; keys leaving the named slots for none
+ *  are removed. */
 export function reconcileSlots<Key, SlotId>(
   mirror: ArrangementMirror<Key, SlotId>,
   next: ArrangementSnapshot<Key, SlotId>,
@@ -419,8 +412,7 @@ function createEmitter<Key, SlotId>(
   };
 }
 
-/** A {@link MutableArrangement}; ops throw {@link ArrangementError} on
- *  invalid ops. */
+/** A {@link MutableArrangement}; invalid ops throw {@link ArrangementError}. */
 export function createArrangement<Key, SlotId>(): MutableArrangement<
   Key,
   SlotId

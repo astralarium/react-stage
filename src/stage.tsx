@@ -64,8 +64,7 @@ export function Stage<Key extends string | number, SlotId, Host>({
         warn(`mirror drifted from its arrangement:\n${diff.join("\n")}`);
       }
     };
-    // Batches emitted from listeners deliver after the current one; the
-    // check waits for them.
+    // Waits for batches emitted from listeners.
     let checkQueued = false;
     const queueCheck = () => {
       if (!DEV || checkQueued) return;
@@ -138,8 +137,8 @@ function StageItems() {
   );
 }
 
-/** One item: its slot's bridged contexts, content host, plugin wrappers
- *  and render. Renders on its own slot or slot-view changes. */
+/** One item: bridged contexts, content host, plugin wrappers and render.
+ *  Re-renders only on its own view changes. */
 function ItemBridgeImpl({ itemKey }: ItemBridgeProps) {
   const value = useStageValue();
   const { store, fixed } = value;

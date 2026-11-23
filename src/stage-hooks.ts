@@ -19,8 +19,8 @@ export function useStage<Key, SlotId, Host>(): StageHandle<Key, SlotId, Host> {
   return useStageValue().store as unknown as StageHandle<Key, SlotId, Host>;
 }
 
-/** Reads whether the enclosing stage item sits offstage; call the
- *  getter at act time (raycast, handler). */
+/** Getter for whether the enclosing item sits offstage; call it at event
+ *  time (raycast, handler). */
 export function useOffstage(): () => boolean {
   const item = use(StageItemContext);
   if (!item) throw new Error("useOffstage needs a stage item");

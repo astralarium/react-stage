@@ -33,21 +33,20 @@ export interface SlotRef<SlotId, Host> {
 
 /** Stage move events. */
 export interface StageEvents<Key, SlotId, Host> {
-  /** `key`'s host now sits under `to`; `from.host` keeps its transform,
-   *  so the prior world transform derives from it and the host's local
-   *  transform. Items without a host (unmounted, hidden) fire none. */
+  /** `key`'s host moved under `to`. `from.host` keeps its transform, so
+   *  it and the host's local transform give the prior world transform.
+   *  Hostless items fire none. */
   onMove?(
     key: Key,
     from: SlotRef<SlotId, Host>,
     to: SlotRef<SlotId, Host>,
   ): void;
-  /** `key`'s host entered `slot` outside a move: a fresh or returning
-   *  host, a late slot mount, a return from offstage. */
+  /** `key`'s host entered `slot` outside a move: host mount, slot mount,
+   *  or return from offstage. */
   onEnter?(key: Key, slot: SlotRef<SlotId, Host>): void;
-  /** A batch's hosts are in place; `slots` lists slots whose order
-   *  changed. Settles fire in batch order, each after the item-list commit
-   *  of any membership batch at or before it, so a hidden stage defers
-   *  them to its reveal. */
+  /** A batch's hosts are in place; `slots` lists reordered slots. Fires
+   *  in batch order, after the commit of any added or removed items, so a
+   *  hidden stage defers it to its reveal. */
   onSettle?(slots: ReadonlySet<SlotId>): void;
 }
 
@@ -59,8 +58,8 @@ export interface StageHandle<Key, SlotId, Host> {
   itemHost(key: Key): Host | undefined;
   /** The slot's host while mounted. */
   slotHost(slot: SlotId): Host | undefined;
-  /** Whether `key` is placed but out of view: its host sits outside its
-   *  slot, or an item holding that slot is offstage. */
+  /** Whether `key` is placed but out of view, itself or through the item
+   *  holding its slot. */
   offstage(key: Key): boolean;
   /** Whether a batch that changed `slot`'s order has yet to settle. */
   settling(slot: SlotId): boolean;
@@ -76,8 +75,8 @@ interface SlotView {
   data: unknown;
 }
 
-/** A key's slot and that slot's view; one object until either changes.
- *  A key whose slot is unmounted keeps its last slot's view. */
+/** A key's slot and its view; stable until either changes. An unmounted
+ *  slot leaves its last view. */
 export interface ItemView<SlotId> extends ItemSlot<SlotId> {
   view: SlotView | undefined;
 }
@@ -190,8 +189,7 @@ export class StageStore<Key, SlotId, Host> implements StageHandle<
     };
   };
 
-  /** `key`'s view, rebuilt on each call; the previous object while
-   *  nothing changed. */
+  /** `key`'s view; the previous object while unchanged. */
   itemView(key: Key): ItemView<SlotId> {
     const previous = this.#views.get(key);
     const id = this.#mirror.slotOf(key);
@@ -233,9 +231,8 @@ export class StageStore<Key, SlotId, Host> implements StageHandle<
 
   // --- Arrangement
 
-  /** Applies a batch: attaches moved hosts, updates the item list, then
-   *  fires moves and the settle, which waits behind any render it
-   *  needs. */
+  /** Applies a batch: places hosts, updates the item list, fires moves
+   *  and the settle. */
   applyBatch(batch: readonly ArrangementOp<Key, SlotId>[]) {
     const priorAttach = new Map<Key, SlotId | typeof BACKSTAGE | undefined>();
     for (const op of batch) {
@@ -428,8 +425,8 @@ export class StageStore<Key, SlotId, Host> implements StageHandle<
     this.#stageContexts = map;
   };
 
-  /** Warns once per context a slot sees with a value other than the
-   *  stage's, unless bridged or unbridged. */
+  /** Warns once per unknown context whose slot value differs from the
+   *  stage's. */
   checkSlotContexts(
     id: SlotId,
     map: ReadonlyMap<AnyContext, unknown>,
@@ -497,8 +494,8 @@ export class StageStore<Key, SlotId, Host> implements StageHandle<
     return null;
   }
 
-  /** Attaches `key`'s host under its slot, else sends it offstage. A
-   *  move's place stays `quiet`: its move event reports it. */
+  /** Attaches `key`'s host under its slot, else sends it offstage.
+   *  `quiet` skips the enter event; moves report their own. */
   #place(key: Key, quiet = false) {
     const host = this.#hosts.get(key);
     if (host === undefined) return;
@@ -525,8 +522,7 @@ export class StageStore<Key, SlotId, Host> implements StageHandle<
     if (entered && !quiet) this.#enters.push([key, { id: slot, host: parent }]);
   }
 
-  /** Fires the enter events `#place` gathered, once every host sits in
-   *  place. */
+  /** Fires gathered enters once every host is placed. */
   #dispatchEnters() {
     const enters = this.#enters;
     this.#enters = [];

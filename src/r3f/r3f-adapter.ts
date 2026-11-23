@@ -4,8 +4,7 @@ import type { Object3D } from "three";
 import type { HostAdapter } from "../host-adapter.ts";
 import { R3fItem, R3fSlot } from "./r3f-hosts.tsx";
 
-/** r3f host binding: slots are groups; item content hosts attach
- *  through the stage. */
+/** r3f host binding: slot and content hosts are groups. */
 export const r3fAdapter: HostAdapter<Object3D> = {
   Slot: R3fSlot,
   Item: R3fItem,

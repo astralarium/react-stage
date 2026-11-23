@@ -10,8 +10,7 @@ export interface StagePlugin<Key> {
   Item?: ComponentType<{ itemKey: Key; children?: ReactNode }>;
   /** Wraps the item list. */
   List?: ComponentType<{ children?: ReactNode }>;
-  /** Contexts the plugin provides, kept out of the bridge; the dev
-   *  context check skips them. */
+  /** Contexts the plugin provides; the dev context check skips them. */
   unbridged?: readonly AnyContext[];
 }
 
@@ -21,23 +20,20 @@ export type ContextProbe = ComponentType<{
   onMap: (map: ReadonlyMap<AnyContext, unknown>) => void;
 }>;
 
-/** Stage props; keys double as React keys, so they stay distinct as
- *  strings. */
+/** Stage props. Keys double as React keys, so they stay distinct as
+ *  strings. Only `arrangement`, `render` and `children` may change. */
 export interface StageProps<Key extends string | number, SlotId, Host> {
-  /** Fixed for the stage's lifetime. */
   adapter: HostAdapter<Host>;
   arrangement: Arrangement<Key, SlotId>;
   /** Renders each item; a slot's `render` overrides it there. */
   render?: ComponentType<ItemProps<Key>>;
-  /** Contexts each item reads from its slot; fixed for the stage's
-   *  lifetime. */
+  /** Contexts each item reads from its slot. */
   bridge?: readonly AnyContext[];
-  /** Contexts kept out of the bridge; the dev context check skips them.
-   *  Fixed for the stage's lifetime. */
+  /** Contexts the dev context check skips. */
   unbridged?: readonly AnyContext[];
-  /** Fixed for the stage's lifetime; earlier plugins wrap later ones. */
+  /** Earlier plugins wrap later ones. */
   plugins?: readonly StagePlugin<Key>[];
-  /** Enables the dev context check; fixed for the stage's lifetime. */
+  /** Enables the dev context check. */
   contextProbe?: ContextProbe;
   children?: ReactNode;
 }

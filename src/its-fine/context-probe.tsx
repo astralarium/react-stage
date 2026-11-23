@@ -9,9 +9,8 @@ export interface ContextProbeProps {
   onMap: (map: ReadonlyMap<AnyContext, unknown>) => void;
 }
 
-/** Reports the contexts above it, as of each change. Supplies its own
- *  `FiberProvider`: its-fine finds the probe's fiber below the provider,
- *  then walks every ancestor. */
+/** Reports the contexts above it on each change. Brings its own
+ *  `FiberProvider` for its-fine to walk up from. */
 export function ContextProbe({ onMap }: ContextProbeProps) {
   return (
     <FiberProvider>
